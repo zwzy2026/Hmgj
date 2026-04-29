@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>万能号码工具箱</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f7fa; color: #333; min-height: 100vh; padding: 16px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 4px; color: #1a73e8; font-size: 24px; }
+    .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 18px; }
+
+    .tabs {
+      display: flex; gap: 6px; margin-bottom: 14px;
+      background: #fff; border-radius: 12px; padding: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 10px;
+      border-radius: 8px; cursor: pointer; font-size: 14px;
+      font-weight: 500; color: #666; transition: all 0.2s;
+      border: none; background: transparent;
+    }
+    .tab:hover { background: #f5f7fa; }
+    .tab.active { background: #e8f0fe; color: #1a73e8; }
+
+    .func-panel { display: none; }
+    .func-panel.active { display: block; }
+
+    .card {
+      background: #fff; border-radius: 12px; padding: 16px;
+      margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .panel-title {
+      font-size: 15px; font-weight: 600; margin-bottom: 10px;
+      color: #444; display: flex; align-items: center; gap: 6px;
+    }
+    textarea {
+      width: 100%; min-height: 80px;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      padding: 10px; font-size: 14px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      resize: vertical; outline: none;
+    }
+    textarea:focus { border-color: #1a73e8; }
+    .hint { font-size: 12px; color: #999; margin-top: 6px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    button {
+      border: none; border-radius: 8px; padding: 9px 16px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+    }
+    button:hover { transform: translateY(-1px); }
+    .btn-blue { background: #1a73e8; color: #fff; }
+    .btn-blue:hover { background: #1557b0; }
+    .btn-green { background: #34a853; color: #fff; }
+    .btn-green:hover { background: #2d8a47; }
+    .btn-orange { background: #f9ab00; color: #fff; }
+    .btn-orange:hover { background: #e09500; }
+    .btn-red { background: #ea4335; color: #fff; }
+    .btn-red:hover { background: #c5221f; }
+    .btn-gray { background: #f1f3f4; color: #444; }
+    .btn-gray:hover { background: #e8eaed; }
+    .btn-purple { background: #9334e6; color: #fff; }
+    .btn-purple:hover { background: #7b1fa2; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+
+    .result-bar {
+      background: #f8f9fa; border: 1px solid #e8eaed;
+      border-radius: 8px; padding: 12px 14px;
+      margin-top: 10px; font-size: 15px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      line-height: 2; word-break: break-all; color: #1a1a1a;
+      min-height: 44px;
+    }
+    .result-bar:empty::before {
+      content: '（暂无结果）'; color: #bbb; font-size: 13px;
+    }
+    .result-label {
+      font-size: 13px; color: #666; margin-top: 12px;
+      font-weight: 500;
+    }
+
+    .tag-box {
+      max-height: 160px; overflow-y: auto;
+      border: 1px solid #e8eaed; border-radius: 8px;
+      padding: 10px; background: #fafafa; margin-top: 10px;
+    }
+    .num-tag {
+      display: inline-block; background: #e8f0fe; color: #1a73e8;
+      padding: 4px 10px; border-radius: 14px; margin: 3px;
+      font-size: 13px; font-family: 'SF Mono', Monaco, monospace;
+      cursor: pointer; user-select: none;
+    }
+    .num-tag:hover { background: #d2e3fc; }
+    .empty-tip { color: #999; text-align: center; padding: 20px 0; font-size: 13px; }
+    .badge {
+      background: #e8f0fe; color: #1a73e8;
+      font-size: 12px; padding: 2px 8px;
+      border-radius: 10px; font-weight: 600; margin-left: 6px;
+    }
+
+    .batch-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; background: #f8f9fa;
+      border-radius: 6px; border-left: 3px solid #4a90d9;
+      margin-bottom: 6px;
+    }
+    .batch-label { font-size: 12px; color: #888; min-width: 50px; font-weight: 500; }
+    .batch-nums { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+
+    .stats { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .stat-box {
+      background: #f8f9fa; border-radius: 8px;
+      padding: 8px 14px; min-width: 90px;
+    }
+    .stat-label { font-size: 11px; color: #888; }
+    .stat-value { font-size: 20px; font-weight: 700; color: #1a73e8; }
+    .stat-value.red { color: #ea4335; }
+    .stat-value.green { color: #34a853; }
+
+    /* 频率统计 */
+    .freq-card {
+      background: #f8f9fa; border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 8px;
+      border: 1px solid #e8eaed;
+    }
+    .freq-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .freq-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .freq-check {
+      width: 18px; height: 18px; cursor: pointer;
+    }
+    .freq-title {
+      font-size: 14px; font-weight: 600; color: #333;
+    }
+    .freq-count {
+      background: #1a73e8; color: #fff;
+      font-size: 11px; padding: 2px 8px; border-radius: 10px;
+      font-weight: 600;
+    }
+    .freq-nums {
+      font-size: 14px; color: #1a1a1a; line-height: 1.8;
+      font-family: 'SF Mono', Monaco, monospace; word-break: break-all;
+    }
+    .freq-copy-btn {
+      padding: 4px 10px; font-size: 12px;
+    }
+
+    .copy-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: #e8f0fe; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .copy-bar-label {
+      font-size: 14px; font-weight: 600; color: #1a73e8;
+    }
+    .copy-bar-checks {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .check-item {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; color: #444; cursor: pointer;
+    }
+    .check-item input { width: 16px; height: 16px; cursor: pointer; }
+
+    .toast {
+      position: fixed; top: 16px; right: 16px;
+      background: #333; color: #fff;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; z-index: 1000;
+      opacity: 0; transform: translateY(-8px);
+      transition: all 0.3s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); display: none;
+      align-items: center; justify-content: center; z-index: 999;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 12px;
+      padding: 20px; max-width: 360px; width: 90%; text-align: center;
+    }
+    .modal h3 { margin-bottom: 10px; font-size: 16px; }
+    .modal p { color: #666; font-size: 14px; margin-bottom: 16px; }
+    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+    @media (max-width: 520px) {
+      body { padding: 10px; }
+      .btn-row { gap: 6px; }
+      button { padding: 8px 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 万能号码工具箱</h1>
+    <p class="subtitle">去重 · 排序统计 · 打乱洗牌</p>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dedup')">🗂️ 去重</button>
+      <button class="tab" onclick="switchTab('sort')">📊 排序统计</button>
+      <button class="tab" onclick="switchTab('shuffle')">🔀 打乱</button>
+    </div>
+
+    <!-- ================== 去重面板（极简版） ================== -->
+    <div class="func-panel active" id="panel-dedup">
+      <!-- 基准号码 -->
+      <div class="card">
+        <div class="panel-title">📌 基准号码（已保存的去重参照）</div>
+        <textarea id="dedupBaseInput" placeholder="粘贴基准号码，支持换行 / 逗号 / 空格 / 分号分隔
+这些号码将作为去重参照，新号码中与之重复的会被筛掉"></textarea>
+        <div class="btn-row">
+          <button class="btn-green" onclick="dedupAddBase()">➕ 添加基准号码</button>
+          <button class="btn-gray" onclick="document.getElementById('dedupBaseInput').value='';showToast('已清空')">🗑️ 清空</button>
+          <button class="btn-red" onclick="baseClearAll()">🗑️ 清空全部</button>
+        </div>
+        <div class="result-label">已保存基准（<span id="baseCount">0</span> 个）— 点击删除：</div>
+        <div class="tag-box" id="baseList"><div class="empty-tip">暂无基准号码</div></div>
+      </div>
+
+      <!-- 新号码去重 -->
+      <div class="card">
+        <div class="panel-title">📥 粘贴需要去重的新号码</div>
+        <textarea id="dedupNewInput" placeholder="粘贴需要去重的新号码，支持换行 / 逗号 / 空格 / 分号分隔"></textarea>
+        <div class="btn-row">
+          <button class="btn-blue" onclick="dedupRun()">🔍 去重</button>
+          <button class="btn-purple" onclick="dedupCopyResult()">📋 复制去重结果</button>
+          <button class="btn-gray" onclick="document.getElementById('dedupNewInput').value='';showToast('已清空')">🗑️ 清空</button>
+        </div>
+        <div class="stats" id="dedupStats" style="margin-top:10px;"></div>
+        <div class="result-label">🎯 去重后结果（空格隔开）：</div>
+        <div class="result-bar" id="dedupResult"></div>
+      </div>
+    </div>
+
+    <!-- ================== 排序统计面板 ================== -->
+    <div class="func-panel" id="panel-sort">
+      <div class="card">
+        <div class="panel-title">📥 粘贴号码</div>
+        <textarea id="sortInput" placeholder="粘贴号码，支持换行 / 逗号 / 空格 / 分号 / 制表符分隔"></textarea>
+        <div class="hint">💡 点击「添加号码」后输入框自动清空，可继续粘贴下一批</div>
+        <div class="btn-row">
+          <button class="btn-green" onclick="sortAdd()">➕ 添加号码</button>
+          <button class="btn-gray" onclick="document.getElementById('sortInput').value='';showToast('已清空')">🗑️ 清空输入</button>
+          <button class="btn-red" onclick="sortClearAll()">🗑️ 清空全部</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">📋 各次输入记录（共 <span id="sortBatchCount">0</span> 次）</div>
+        <div id="sortBatchArea"><div class="empty-tip">暂无记录</div></div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">📊 从小到大排序（共 <span id="sortTotalCount">0</span> 个）</div>
+        <div class="result-bar" id="sortSortedArea"></div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn-blue" onclick="sortCopyResult()">📋 复制排序结果</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">📈 按出现次数分组统计</div>
+        <div class="copy-bar" id="sortCopyBar" style="display:none;">
+          <span class="copy-bar-label">📋 批量复制：</span>
+          <div class="copy-bar-checks" id="sortCopyChecks"></div>
+          <button class="btn-blue btn-small" onclick="sortCopyChecked()">复制选中</button>
+          <button class="btn-gray btn-small" onclick="sortCheckAll()">全选</button>
+          <button class="btn-gray btn-small" onclick="sortUncheckAll()">全不选</button>
+        </div>
+        <div id="sortStatsArea"><div class="empty-tip">暂无数据</div></div>
+      </div>
+    </div>
+
+    <!-- ================== 打乱面板 ================== -->
+    <div class="func-panel" id="panel-shuffle">
+      <div class="card">
+        <div class="panel-title">📥 粘贴要打乱的号码</div>
+        <textarea id="shuffleInput" placeholder="粘贴号码，支持换行 / 逗号 / 空格 / 分号分隔"></textarea>
+        <div class="hint">💡 点击「添加号码」后输入框自动清空，可继续粘贴下一批</div>
+        <div class="btn-row">
+          <button class="btn-green" onclick="shuffleAdd()">➕ 添加号码</button>
+          <button class="btn-gray" onclick="document.getElementById('shuffleInput').value='';showToast('已清空')">🗑️ 清空输入</button>
+          <button class="btn-red" onclick="shuffleClearAll()">🗑️ 清空全部</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">📋 已添加号码（共 <span id="shuffleBatchCount">0</span> 次）</div>
+        <div id="shuffleBatchArea"><div class="empty-tip">暂无记录</div></div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">🎲 打乱结果（共 <span id="shuffleResultCount">0</span> 个）</div>
+        <div class="result-bar" id="shuffleResult"></div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn-orange" onclick="shuffleRun()">🔀 打乱</button>
+          <button class="btn-orange" onclick="shuffleReRun()">🔄 重新打乱</button>
+          <button class="btn-purple" onclick="shuffleCopyResult()">📋 复制打乱结果</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h3>⚠️ 确认清空</h3>
+      <p>确定要清空所有已添加的号码吗？</p>
+      <div class="modal-btns">
+        <button class="btn-red" onclick="sortConfirmClear()">确认清空</button>
+        <button class="btn-gray" onclick="closeModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===================== 通用 =====================
+    function parseNumbers(text) {
+      return text.split(/[\n,;.\/\\|:+\-~\s\t，。；、]+/)
+        .map(s => {
+          s = s.trim();
+          // 去掉前导零，但保留单个0
+          s = s.replace(/^0+/, '');
+          if (s === '') s = '0';
+          return s;
+        })
+        .filter(s => s.length > 0);
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+    function escapeHtml(text) {
+      const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
+    }
+    function copyToClipboard(text, successMsg) {
+      navigator.clipboard.writeText(text).then(() => showToast(successMsg))
+        .catch(() => {
+          const ta = document.createElement('textarea'); ta.value = text;
+          document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta);
+          showToast(successMsg);
+        });
+    }
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.func-panel').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('panel-' + name).classList.add('active');
+    }
+
+    // ===================== 去重面板 =====================
+    let baseNumbers = []; // 基准号码
+    let lastDedupResult = [];
+
+    function dedupAddBase() {
+      const input = document.getElementById('dedupBaseInput');
+      const nums = parseNumbers(input.value);
+      if (!nums.length) { showToast('没有检测到有效号码'); return; }
+      baseNumbers = [...new Set([...baseNumbers, ...nums])];
+      input.value = '';
+      renderBase();
+      showToast(`已添加 ${nums.length} 个基准号码，共 ${baseNumbers.length} 个`);
+    }
+    function renderBase() {
+      document.getElementById('baseCount').textContent = baseNumbers.length;
+      const box = document.getElementById('baseList');
+      if (!baseNumbers.length) { box.innerHTML = '<div class="empty-tip">暂无基准号码</div>'; return; }
+      box.innerHTML = baseNumbers.map((n, i) =>
+        `<span class="num-tag" onclick="removeBase(${i})" title="点击删除">${escapeHtml(n)}</span>`
+      ).join('');
+    }
+    function removeBase(index) {
+      const removed = baseNumbers.splice(index, 1);
+      renderBase();
+      showToast(`已删除: ${removed[0]}`);
+    }
+    function dedupRun() {
+      const newNums = parseNumbers(document.getElementById('dedupNewInput').value);
+      if (!newNums.length) { showToast('请先粘贴需要去重的新号码'); return; }
+      const result = newNums.filter(n => !baseNumbers.includes(n));
+      const removed = newNums.filter(n => baseNumbers.includes(n));
+      lastDedupResult = result;
+      document.getElementById('dedupResult').textContent = result.join(' ');
+
+      const stats = document.getElementById('dedupStats');
+      stats.innerHTML = `
+        <div class="stat-box"><div class="stat-label">新号码</div><div class="stat-value">${newNums.length}</div></div>
+        <div class="stat-box"><div class="stat-label">重复筛掉</div><div class="stat-value red">${removed.length}</div></div>
+        <div class="stat-box"><div class="stat-label">去重后</div><div class="stat-value green">${result.length}</div></div>
+      `;
+      showToast(`去重完成：${newNums.length} 个 → 筛掉 ${removed.length} 个 → 剩余 ${result.length} 个`);
+    }
+    function dedupCopyResult() {
+      if (!lastDedupResult.length) { showToast('没有可复制的去重结果'); return; }
+      copyToClipboard(lastDedupResult.join(' '), '已复制去重结果');
+    }
+
+    function baseClearAll() {
+      baseNumbers = [];
+      lastDedupResult = [];
+      renderBase();
+      document.getElementById('dedupResult').textContent = '';
+      document.getElementById('dedupStats').innerHTML = '';
+      showToast('基准号码和去重结果已清空');
+    }
+    let sortBatches = [];
+    let sortPool = [];
+    let sortFreqData = {}; // { count: [numbers] }
+
+    function sortAdd() {
+      const input = document.getElementById('sortInput');
+      const text = input.value.trim();
+      const nums = parseNumbers(text);
+      if (!nums.length) { showToast('没有检测到有效号码'); return; }
+      sortBatches.push(nums);
+      sortPool = sortBatches.flat();
+      input.value = '';
+      renderSortBatches();
+      refreshSort();
+      showToast(`第 ${sortBatches.length} 次添加：${nums.length} 个号码`);
+    }
+    function renderSortBatches() {
+      const box = document.getElementById('sortBatchArea');
+      document.getElementById('sortBatchCount').textContent = sortBatches.length;
+      if (!sortBatches.length) { box.innerHTML = '<div class="empty-tip">暂无记录</div>'; return; }
+      box.innerHTML = sortBatches.map((nums, idx) => {
+        const sorted = [...nums].sort((a, b) => parseFloat(a) - parseFloat(b));
+        return `<div class="batch-item"><span class="batch-label">第${idx + 1}次</span><span class="batch-nums">${sorted.join('  ')}</span></div>`;
+      }).join('');
+    }
+    function refreshSort() {
+      document.getElementById('sortTotalCount').textContent = sortPool.length;
+      const sortedArea = document.getElementById('sortSortedArea');
+      if (!sortPool.length) { sortedArea.textContent = ''; return; }
+      const sorted = [...sortPool].sort((a, b) => {
+        const na = parseFloat(a), nb = parseFloat(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+      });
+      sortedArea.textContent = sorted.join(' ');
+
+      // 频率统计
+      const freq = {};
+      sortPool.forEach(n => { freq[n] = (freq[n] || 0) + 1; });
+      const byCount = {};
+      Object.entries(freq).forEach(([num, count]) => {
+        if (!byCount[count]) byCount[count] = [];
+        byCount[count].push(num);
+      });
+      sortFreqData = byCount;
+
+      const counts = Object.keys(byCount).map(Number).sort((a, b) => b - a);
+      const statsBox = document.getElementById('sortStatsArea');
+      if (!counts.length) {
+        statsBox.innerHTML = '<div class="empty-tip">暂无数据</div>';
+        document.getElementById('sortCopyBar').style.display = 'none';
+        return;
+      }
+
+      // 构建勾选栏
+      const checksBox = document.getElementById('sortCopyChecks');
+      checksBox.innerHTML = counts.map(c =>
+        `<label class="check-item"><input type="checkbox" class="freq-check" value="${c}" id="chk-freq-${c}"><span>${c}次</span></label>`
+      ).join('');
+      document.getElementById('sortCopyBar').style.display = 'flex';
+
+      let html = '';
+      counts.forEach(count => {
+        const nums = byCount[count].sort((a, b) => {
+          const na = parseFloat(a), nb = parseFloat(b);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return String(a).localeCompare(String(b));
+        });
+        html += `<div class="freq-card">
+          <div class="freq-header">
+            <div class="freq-left">
+              <span class="freq-title">出现 <span class="freq-count">${count}</span> 次的号码</span>
+            </div>
+            <button class="btn-blue btn-small freq-copy-btn" onclick="sortCopyOneGroup(${count})">📋 复制该组</button>
+          </div>
+          <div class="freq-nums">${nums.join(' ')}</div>
+        </div>`;
+      });
+      html += `<div style="margin-top:8px;font-size:12px;color:#666;">
+        不重复：${Object.keys(freq).length} 个 | 总计：${sortPool.length} 个 | 批次：${sortBatches.length} 次
+      </div>`;
+      statsBox.innerHTML = html;
+    }
+    function sortCopyResult() {
+      const text = document.getElementById('sortSortedArea').textContent.trim();
+      if (!text) { showToast('没有可复制的排序结果'); return; }
+      copyToClipboard(text, '已复制排序结果');
+    }
+    function sortCopyOneGroup(count) {
+      const nums = sortFreqData[count];
+      if (!nums || !nums.length) return;
+      copyToClipboard(nums.join(' '), `已复制出现 ${count} 次的 ${nums.length} 个号码`);
+    }
+    function sortCopyChecked() {
+      const checked = document.querySelectorAll('#sortCopyChecks input:checked');
+      if (!checked.length) { showToast('请先勾选要复制的分组'); return; }
+      const allNums = [];
+      checked.forEach(chk => {
+        const count = parseInt(chk.value);
+        const nums = sortFreqData[count];
+        if (nums) allNums.push(...nums);
+      });
+      if (!allNums.length) { showToast('选中的分组为空'); return; }
+      copyToClipboard(allNums.join(' '), `已复制 ${checked.length} 个分组共 ${allNums.length} 个号码`);
+    }
+    function sortCheckAll() {
+      document.querySelectorAll('#sortCopyChecks input').forEach(chk => chk.checked = true);
+    }
+    function sortUncheckAll() {
+      document.querySelectorAll('#sortCopyChecks input').forEach(chk => chk.checked = false);
+    }
+    function sortClearAll() {
+      if (sortBatches.length === 0) { showToast('已经是空的'); return; }
+      document.getElementById('modal').classList.add('show');
+    }
+    function sortConfirmClear() {
+      sortBatches = []; sortPool = []; sortFreqData = {};
+      renderSortBatches();
+      document.getElementById('sortSortedArea').textContent = '';
+      document.getElementById('sortStatsArea').innerHTML = '<div class="empty-tip">暂无数据</div>';
+      document.getElementById('sortCopyBar').style.display = 'none';
+      document.getElementById('sortTotalCount').textContent = '0';
+      closeModal();
+      showToast('排序统计已清空');
+    }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+    // ===================== 打乱面板 =====================
+    let shuffleBatches = [];
+    let shufflePool = [];
+    let lastShuffleResult = [];
+
+    function shuffleAdd() {
+      const input = document.getElementById('shuffleInput');
+      const text = input.value.trim();
+      const nums = parseNumbers(text);
+      if (!nums.length) { showToast('没有检测到有效号码'); return; }
+      shuffleBatches.push(nums);
+      shufflePool = shuffleBatches.flat();
+      input.value = '';
+      renderShuffleBatches();
+      showToast(`第 ${shuffleBatches.length} 次添加：${nums.length} 个号码`);
+    }
+    function renderShuffleBatches() {
+      const box = document.getElementById('shuffleBatchArea');
+      document.getElementById('shuffleBatchCount').textContent = shuffleBatches.length;
+      if (!shuffleBatches.length) { box.innerHTML = '<div class="empty-tip">暂无记录</div>'; return; }
+      box.innerHTML = shuffleBatches.map((nums, idx) =>
+        `<div class="batch-item"><span class="batch-label">第${idx + 1}次</span><span class="batch-nums">${nums.join('  ')}</span></div>`
+      ).join('');
+    }
+    function shuffleRun() {
+      if (!shufflePool.length) { showToast('请先添加号码'); return; }
+      const pool = [...shufflePool];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      lastShuffleResult = pool;
+      document.getElementById('shuffleResult').textContent = pool.join(' ');
+      document.getElementById('shuffleResultCount').textContent = pool.length;
+      showToast(`已打乱 ${pool.length} 个号码`);
+    }
+    function shuffleReRun() {
+      shuffleRun();
+    }
+    function shuffleCopyResult() {
+      if (!lastShuffleResult.length) { showToast('没有可复制的打乱结果'); return; }
+      copyToClipboard(lastShuffleResult.join(' '), '已复制打乱结果');
+    }
+
+    function shuffleClearAll() {
+      shuffleBatches = []; shufflePool = []; lastShuffleResult = [];
+      renderShuffleBatches();
+      document.getElementById('shuffleResult').textContent = '';
+      document.getElementById('shuffleResultCount').textContent = '0';
+      showToast('打乱数据已清空');
+    }
+
+    // ===================== 初始化 =====================
+    renderBase();
+  </script>
+</body>
+</html>
