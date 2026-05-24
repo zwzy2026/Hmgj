@@ -179,7 +179,11 @@
                 let lines = [];
                 for (let i = 0; i < shuffledGroups.length; i += 3) {
                     let lineGroups = shuffledGroups.slice(i, i + 3);
-                    let formatted = lineGroups.map(g => g.join('-'));
+                    let formatted = lineGroups.map(g => {
+                        let s = g.join('-');
+                        // 补齐到8个字符（比如 01-02-03 是8位）
+                        return s.padEnd(8, ' ');
+                    });
                     lines.push(formatted.join('  '));
                 }
                 
