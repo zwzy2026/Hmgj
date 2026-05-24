@@ -78,11 +78,9 @@
             padding: 12px;
             border: 2px solid #4CAF50;
             border-radius: 5px;
-            font-family: "Courier New", "Courier", monospace; /* 强制等宽字体 */
-            font-size: 16px;
+            font-family: "Consolas", monospace;
+            font-size: 14px;
             background: #f8f8f8;
-            line-height: 1.6;
-            letter-spacing: 0; /* 取消字间距 */
         }
         .status {
             text-align: center;
@@ -102,8 +100,7 @@
             <strong>使用说明：</strong><br>
             1. 在下方粘贴号码（支持任意分隔符：. / - 空格，、等）<br>
             2. 点击【开始打乱】按钮<br>
-            3. 结果自动显示，点击【复制结果】即可使用<br>
-            <strong>注意：</strong>苹果手机请用Safari打开，复制后粘贴到微信
+            3. 结果自动显示，点击【复制结果】即可使用
         </div>
         
         <label>输入号码（每行一组，每组3个号码）：</label>
@@ -171,13 +168,16 @@
                 let lines = [];
                 for (let i = 0; i < shuffledGroups.length; i += 3) {
                     let lineGroups = shuffledGroups.slice(i, i + 3);
-                    // 每个组固定宽度，用等宽字体对齐
+                    // 每个组固定8字符宽度，用全角空格补齐
                     let formatted = lineGroups.map(g => {
                         let s = g.map(n => n.toString().padStart(2, '0')).join('-');
-                        return s;
+                        // 计算需要补齐的全角空格数（每个数字和符号算1个全角宽度）
+                        let fullWidthLen = s.length; // 数字和-都是半角，算0.5个全角
+                        // 用全角空格补齐到8个全角字符宽度
+                        let padding = '　'.repeat(Math.max(0, 8 - s.length));
+                        return s + padding;
                     });
-                    // 用Tab分隔，在等宽字体下对齐
-                    lines.push(formatted.join('\t'));
+                    lines.push(formatted.join('　　'));
                 }
                 
                 let result = lines.join('\n');
