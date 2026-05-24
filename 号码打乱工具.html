@@ -116,12 +116,7 @@
         
         <label>输入号码（每行一组，每组3个号码）：</label>
         <textarea id="input" placeholder="例如：
-23.52.66
-11.27.53
-35.53.67
-77.81.95
-88.83.86
-55.56.57"></textarea>
+            "></textarea>
         
         <div class="btn-group">
             <button class="btn-process" onclick="process()">开始打乱</button>
@@ -185,7 +180,7 @@
                 for (let i = 0; i < shuffledGroups.length; i += 3) {
                     let lineGroups = shuffledGroups.slice(i, i + 3);
                     let formatted = lineGroups.map(g => g.join('-'));
-                    lines.push(formatted.join('   '));
+                    lines.push(formatted.join('  '));
                 }
                 
                 let result = lines.join('\n');
