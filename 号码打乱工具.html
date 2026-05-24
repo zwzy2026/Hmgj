@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>号码打乱整理工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .help {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: "Consolas", monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        button:hover { opacity: 0.9; }
+        .btn-process {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+        .btn-copy {
+            background: #2196F3;
+            color: white;
+        }
+        .output-area {
+            margin-top: 20px;
+        }
+        #output {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            font-family: "Consolas", monospace;
+            font-size: 14px;
+            background: #f8f8f8;
+        }
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            height: 20px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>号码打乱整理工具</h1>
+        
+        <div class="help">
+            <strong>使用说明：</strong><br>
+            1. 在下方粘贴号码（支持任意分隔符：. / - 空格等）<br>
+            2. 点击【开始打乱】按钮<br>
+            3. 结果自动显示，点击【复制结果】即可使用
+        </div>
+        
+        <label>输入号码（每行一组，每组3个号码）：</label>
+        <textarea id="input" placeholder="例如：
+23.52.66
+11.27.53
+35.53.67
+77.81.95
+88.83.86
+55.56.57"></textarea>
+        
+        <div class="btn-group">
+            <button class="btn-process" onclick="process()">开始打乱</button>
+            <button class="btn-clear" onclick="clearAll()">清空</button>
+            <button class="btn-copy" onclick="copyResult()">复制结果</button>
+        </div>
+        
+        <div class="output-area">
+            <label>处理结果（每行3组，组内用-连接）：</label>
+            <textarea id="output" readonly></textarea>
+        </div>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        function extractNumbers(text) {
+            return text.match(/\d+/g) || [];
+        }
+        
+        function shuffleArray(arr) {
+            let shuffled = [...arr];
+            let original = arr.join(',');
+            let attempts = 0;
+            do {
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                attempts++;
+            } while (shuffled.join(',') === original && attempts < 100);
+            return shuffled;
+        }
+        
+        function process() {
+            let input = document.getElementById('input').value.trim();
+            let status = document.getElementById('status');
+            let output = document.getElementById('output');
+            
+            if (!input) {
+                status.className = 'status error';
+                status.textContent = '请输入号码内容！';
+                return;
+            }
+            
+            try {
+                let numbers = extractNumbers(input);
+                let groups = [];
+                for (let i = 0; i < numbers.length; i += 3) {
+                    if (i + 2 < numbers.length) {
+                        groups.push([numbers[i], numbers[i+1], numbers[i+2]]);
+                    }
+                }
+                
+                let shuffledGroups = groups.map(g => shuffleArray(g));
+                
+                // 打乱组与组之间的顺序
+                shuffledGroups = shuffleArray(shuffledGroups);
+                
+                let lines = [];
+                for (let i = 0; i < shuffledGroups.length; i += 3) {
+                    let lineGroups = shuffledGroups.slice(i, i + 3);
+                    let formatted = lineGroups.map(g => g.join('-'));
+                    lines.push(formatted.join('   '));
+                }
+                
+                let result = lines.join('\n');
+                output.value = result;
+                status.className = 'status success';
+                status.textContent = '✓ 处理完成！点击【复制结果】使用';
+                
+            } catch (e) {
+                status.className = 'status error';
+                status.textContent = '处理失败：' + e.message;
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('status').textContent = '';
+        }
+        
+        function copyResult() {
+            let output = document.getElementById('output');
+            let status = document.getElementById('status');
+            
+            if (!output.value) {
+                status.className = 'status error';
+                status.textContent = '没有可复制的内容！';
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            status.className = 'status success';
+            status.textContent = '✓ 已复制到剪贴板！';
+        }
+    </script>
+</body>
+</html>
